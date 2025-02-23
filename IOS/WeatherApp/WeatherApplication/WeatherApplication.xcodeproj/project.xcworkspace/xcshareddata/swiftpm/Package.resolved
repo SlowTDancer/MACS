@@ -1,0 +1,24 @@
+{
+  "originHash" : "13323dd55bd26e09f2e35e12cdcfdcb73c77223ebc728c9c8341b332f347c6fb",
+  "pins" : [
+    {
+      "identity" : "centeredcollectionview",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/BenEmdon/CenteredCollectionView",
+      "state" : {
+        "revision" : "f2bf371dae314b46f1bc03c222861c9fc40fff32",
+        "version" : "2.2.2"
+      }
+    },
+    {
+      "identity" : "kingfisher",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/onevcat/Kingfisher",
+      "state" : {
+        "revision" : "3db26ab625d194c38e68c1a40e43d1bc12743fe0",
+        "version" : "8.2.0"
+      }
+    }
+  ],
+  "version" : 3
+}

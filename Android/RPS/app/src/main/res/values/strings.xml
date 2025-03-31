@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">RPS</string>
+    <string name="player1">Computer</string>
+    <string name="player2">Player</string>
+    <string name="init_text">Press any button to start</string>
+    <string name="rock">Rock</string>
+    <string name="paper">Paper</string>
+    <string name="scissors">Scissors</string>
+    <string name="default_image_content_description">None</string>
+</resources>

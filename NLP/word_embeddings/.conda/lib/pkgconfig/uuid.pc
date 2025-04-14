@@ -1,0 +1,11 @@
+prefix=/mnt/c/Users/x/Desktop/a1/student/.conda
+exec_prefix=/mnt/c/Users/x/Desktop/a1/student/.conda
+libdir=/mnt/c/Users/x/Desktop/a1/student/.conda/lib
+includedir=/mnt/c/Users/x/Desktop/a1/student/.conda/include
+
+Name: uuid
+Description: Universally unique id library
+Version: 2.32.1
+Requires:
+Cflags: -I${includedir}/uuid
+Libs: -L${libdir} -luuid

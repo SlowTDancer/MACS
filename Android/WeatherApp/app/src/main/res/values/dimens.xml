@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="daily_weather_icon_size">100dp</dimen>
+    <dimen name="daily_temperature_text_size">48sp</dimen>
+    <dimen name="daily_weather_description_text_size">16sp</dimen>
+    <dimen name="daily_detail_text_spacing">32dp</dimen>
+    <dimen name="daily_details_text_size">16sp</dimen>
+
+    <dimen name="hourly_date_text_size">14sp</dimen>
+    <dimen name="hourly_weather_icon_size">50dp</dimen>
+    <dimen name="hourly_temperature_text_size">16sp</dimen>
+    <dimen name="hourly_weather_description_text_size">14sp</dimen>
+
+    <dimen name="navigation_icon_size">30dp</dimen>
+    <dimen name="daily_flag_icon_size">100dp</dimen>
+    <dimen name="hourly_flag_icon_size">30dp</dimen>
+    <dimen name="spacing_16">16dp</dimen>
+    <dimen name="fill">0dp</dimen>
+    <dimen name="capital_text_size">16sp</dimen>
+</resources>

@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">WeatherApp</string>
+    <string name="navigation_icon_description">NavigationIcon</string>
+    <string name="details">DETAILS</string>
+    <string name="temperature">Temperature</string>
+    <string name="feels_like">Feels Like</string>
+    <string name="humidity">Humidity</string>
+    <string name="pressure">Pressure</string>
+    <string name="Tbilisi">Tbilisi</string>
+    <string name="London">London</string>
+    <string name="Kingston">Kingston</string>
+</resources>

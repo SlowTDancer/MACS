@@ -30,6 +30,7 @@ class MainActivity : AppCompatActivity() {
 
             tab.customView = tabBinding.root
         }.attach()
+
     }
 }
 

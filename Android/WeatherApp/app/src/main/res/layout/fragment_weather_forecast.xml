@@ -2,10 +2,9 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/hourly_weather"
+    android:id="@+id/forecast_weather"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
     tools:context=".MainActivity">
 
     <ImageView
@@ -56,9 +55,9 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/fill"
         android:layout_marginTop="@dimen/spacing_16"
+        android:clipToPadding="false"
         android:orientation="vertical"
         android:paddingBottom="0dp"
-        android:clipToPadding="false"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

@@ -1,0 +1,149 @@
+class AntGame {
+
+    static AntGame instance;     
+    field int x;
+    field int y; 
+    field int dir; 
+    field boolean running; 
+    field boolean restart;
+    field int numSteps;
+    field int width, height;
+    field int waitTime;
+
+    constructor AntGame new() {
+	    do Screen.clearScreen();
+
+	    let x = 0;
+        let y = 0;
+        let dir = 0;
+        let running = false;
+        let restart = false;
+        let numSteps = 0;
+        let width = 512;
+        let height = 256;
+        let waitTime = 3000;
+
+        return this;
+    }
+
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    function void newInstance() {
+        let instance = AntGame.new();
+        return;
+    }
+    
+    method void readInput() {
+        do Screen.clearScreen();
+        do Output.moveCursor(0, 0);
+
+        let x = Keyboard.readInt("Enter initial x coordinate [0, 512): ");
+        let y = Keyboard.readInt("Enter initial y coordinate [0, 256): ");
+        let dir = Keyboard.readInt("Enter initial direction (0 -> north, 1 -> west, 2 -> south, 3 -> east): ");
+
+        return;
+    }   
+
+
+    method void startGame() {
+        do readInput();
+
+        do Screen.clearScreen();
+        let numSteps = 0;
+        do Screen.setColor(true);
+        do Screen.drawPixel(x, y);
+        let restart = false;
+        let running = false;
+
+        return;
+    }
+
+    function AntGame getInstance() {
+        return instance;
+    }
+
+    method void run() {
+        var char key;
+
+        while (true) {
+            do startGame();
+            while (~restart) {
+                if (running) {
+                    do moveAnt();
+                }
+                
+                let key = Keyboard.keyPressed();
+                if (key = 32) { 
+                    let running = ~running;
+                }
+                if (key = 82) {
+                    do restart();
+                }
+
+                do Sys.wait(60);
+            }
+        }
+
+        return;
+    }
+    
+    method void restart(){
+        do Screen.clearScreen();
+        do Output.moveCursor(0, 0);
+
+        do Output.printString("Total steps in : ");
+        do Output.printInt(numSteps);
+        do Output.println();
+        
+        do Sys.wait(waitTime);
+        do Screen.clearScreen();
+        let restart = true;
+
+        return;
+    }
+
+    method boolean getColor(){
+        var int address, value, bit;
+
+        let bit = BetterMath.mod(x, 16);
+        let bit = BetterMath.pow(2, bit);
+        let address = Math.multiply(y, 32) + Math.divide(x, 16);
+
+        let value = Memory.peek(16384 + address) & bit;
+
+        return ~(value = 0);
+    }
+
+    method void moveAnt() {
+        var boolean color;
+        let color = getColor();
+        
+        do Screen.setColor(~color);
+        do Screen.drawPixel(x, y);
+
+        if (color) {
+            let dir = BetterMath.mod(dir + 3, 4);
+        } else {
+            let dir = BetterMath.mod(dir + 1, 4);
+        }
+        
+        if (dir = 0) {
+            let y = BetterMath.mod(y - 1 + height, height);
+        }
+        if (dir = 1) {
+            let x = BetterMath.mod(x - 1 + width, width);
+        }
+        if (dir = 2) {
+            let y = BetterMath.mod(y + 1 + height, height);
+        }
+        if (dir = 3) {
+            let x = BetterMath.mod(x + 1 + width, width);
+        }
+        
+        let numSteps = numSteps + 1;
+        return;
+    }
+}

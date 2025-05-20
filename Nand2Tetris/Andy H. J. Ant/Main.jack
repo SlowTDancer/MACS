@@ -1,0 +1,10 @@
+class Main {
+    function void main() {
+        var AntGame game;
+        do AntGame.newInstance();
+        let game = AntGame.getInstance();
+        do game.run();
+        do game.dispose();
+        return;
+    }
+}

@@ -1,0 +1,95 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/5/CPU.hdl
+/**
+ * The Hack Central Processing unit (CPU).
+ * Parses the binary code in the instruction input and executes it according to the
+ * Hack machine language specification. In the case of a C-instruction, computes the
+ * function specified by the instruction. If the instruction specifies to read a memory
+ * value, the inM input is expected to contain this value. If the instruction specifies
+ * to write a value to the memory, sets the outM output to this value, sets the addressM
+ * output to the target address, and asserts the writeM output (when writeM = 0, any
+ * value may appear in outM).
+ * If the reset input is 0, computes the address of the next instruction and sets the
+ * pc output to that value. If the reset input is 1, sets pc to 0.
+ * Note: The outM and writeM outputs are combinational: they are affected by the
+ * instruction's execution during the current cycle. The addressM and pc outputs are
+ * clocked: although they are affected by the instruction's execution, they commit to
+ * their new values only in the next cycle.
+ */
+CHIP CPU {
+
+    IN  inM[16],         // M value input  (M = contents of RAM[A])
+        instruction[16], // Instruction for execution
+        reset;           // Signals whether to re-start the current
+                         // program (reset==1) or continue executing
+                         // the current program (reset==0).
+
+    OUT outM[16],        // M value output
+        writeM,          // Write to M? 
+        addressM[15],    // Address in data memory (of M)
+        pc[15];          // address of next instruction
+
+    PARTS:
+	Mux16(a = instruction, b = ALUout, sel = instruction[15], out = Mux16toAreg);
+
+    Not(in = instruction[15], out = not15);
+    Or(a = not15, b = instruction[5], out = Aload);
+    ARegister(in = Mux16toAreg, load = Aload, out = ARegout, out[0..14] = addressM);
+
+    And(a = instruction[15], b = instruction[4], out = Dload);
+    DRegister(in = ALUout, load = Dload, out = Dout);
+    
+    Mux16(a = ARegout, b = inM, sel = instruction[12], out = toALU);
+
+    ALU(x = Dout, y = toALU, zx = instruction[11], nx = instruction[10], zy = instruction[9], ny = instruction[8], f = instruction[7], no = instruction[6], out = ALUout, out = outM, zr = zr, ng = ng);
+
+    And(a=instruction[15], b=instruction[3], out=writeM);
+
+    Or(a = instruction[2], b = instruction[2], out = j1);
+    Or(a = instruction[1], b = instruction[1], out = j2);
+    Or(a = instruction[0], b = instruction[0], out = j3);
+
+    Not(in = j1, out = araj1);
+    Not(in = j2, out = araj2);
+    Not(in = j3, out = araj3);
+
+    And(a = araj1, b = araj2, out = JGThelper);
+    And(a = JGThelper, b = j3, out = JGT);
+    Or(a = zr, b = ng, out = zrANng);
+    Not(in = zrANng, out = plus);
+    Not(in = plus, out = minus);
+    And(a = JGT, b = plus, out = DOJGT);
+    
+    And(a = araj1, b = j2, out = JEQhelper);
+    And(a = JEQhelper, b = araj3, out = JEQ);
+    And(a = zr, b = JEQ, out = DOJEQ);
+
+    And(a = araj1, b = j2, out = JGEhelper);
+    And(a = JGEhelper, b = j3, out = JGE);
+    Not(in = ng, out = araNeg);
+    And(a = araNeg, b = JGE, out = DOJGE);
+
+    And(a = j1, b = araj2, out = JLThelper);
+    And(a = JLThelper, b = araj3, out = JLT);
+    And(a = ng, b = JLT, out = DOJLT);
+
+    And(a = j1, b = araj2, out = JNEhelper);
+    And(a = JNEhelper, b = j3, out = JNE);
+    Not(in = zr, out = notZero);
+    And(a  = notZero, b = JNE, out = DOJNE);
+
+    And(a = j1, b = j2, out = JLEhelper);
+    And(a = JLEhelper, b = araj3, out=JLE);
+    And(a = minus, b = JLE, out = DOJLE);
+    
+    And(a = j1, b = j2, out = JMPhelper);
+    And(a = JMPhelper, b = j3, out = JMP);
+
+
+    Or8Way(in[0] = false, in[1] = DOJGT, in[2] = DOJEQ, in[3] = DOJGE, in[4] = DOJLT, in[5] = DOJNE, in[6] = DOJLE, in[7] = JMP, out = DOjump);
+    And(a = instruction[15], b = DOjump, out = shouldJump);
+    
+    PC(in = ARegout, load = shouldJump, inc = true, reset = reset, out[0..14] = pc);
+}

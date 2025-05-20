@@ -1,0 +1,24 @@
+class BetterMath{
+    constructor BetterMath new(){
+        return this;
+    }
+
+    function int mod(int x, int y) {
+        var int res;
+        let res = x - Math.multiply(Math.divide(x, y),  y);
+        return res;
+    }
+
+    function int pow(int x, int n){
+        var int res, counter;
+        let counter =  0;
+        let res = 1;
+        
+        while (counter < n){
+            let res = Math.multiply(res, x);
+            let counter = counter + 1;
+        }
+
+        return res;
+    }
+}

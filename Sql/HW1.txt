@@ -1,0 +1,49 @@
+/*solution for problem 1:*/
+
+select emps.first_name||' - '||emps.last_name as "F and L",
+case when emps.department_id is null then 'X' else joined_departs.department_name end as department_id,
+joined_table.first_name,
+TO_CHAR(emps.salary, 'fmL99G999D00') as salary,
+last_table.first_name as managers_name,
+last_table.salary as managers_salary
+from employees emps
+join departments joined_departs on joined_departs.department_id = emps.department_id
+join employees joined_table on joined_table.employee_id = emps.manager_id
+join employees last_table on joined_table.manager_id = last_table.employee_id
+where (last_table.first_name like '%a%' or last_table.first_name like '%A%') 
+and mod(last_table.salary, 17) = 0;
+
+
+/*solution for problem 2:*/
+
+select 
+  first_name || ' ' || last_name as FULL_NAME,
+  TO_CHAR(salary, 'fmL99G999D00') as salary,
+  (case when (email is null or not email like '%@%') then 'INVALID MAIL' else substr(email, 1, instr(email, '@') - 1) end) as email, 
+  salary *((trunc(months_between(sysdate, trunc(sysdate, 'YEAR'))))) as CURRENT_YEARLY_SALARY,
+  (case when (COMMISSION_PCT is null) then 'No Com' else to_char(COMMISSION_PCT) end) as COMMISSION_PCT
+from employees emps
+where 
+     (emps.department_id = 50 or (sysdate - emps.hire_date) / 365 >= 5)
+     and emps.phone_number like '515%'
+     and (emps.job_id != 'IT_PROG' AND emps.job_id != 'PU_CLERK')
+     and (emps.salary between 5000 and 10000)
+     and emps.manager_id is not null
+order by length(salary) desc, salary desc, hire_date;
+
+
+/*solution for problem 3:*/
+
+select
+substr(jobs.job_id, 1, instr(jobs.job_id, '_', 1) - 1) as pref,
+count(distinct emps.employee_id) as count,
+case count(distinct emps.employee_id) when 0 then 'N' else 'Y' end as yn,
+avg(salary) as avg_salary,
+count(distinct case extract(year from emps.hire_date) when 2002 then emps.employee_id else null end) as cnt_2002
+from jobs
+join employees emps on emps.job_id like concat(substr(jobs.job_id, 1, instr(jobs.job_id, '_', 1) - 1) , '%')
+group by substr(jobs.job_id, 1, instr(jobs.job_id, '_', 1) - 1)
+order by case
+when (pref like 'IT%') then 1
+when (pref like 'MK%') then 2
+else 3 end, avg_salary desc

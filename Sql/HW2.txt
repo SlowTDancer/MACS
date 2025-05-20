@@ -1,0 +1,44 @@
+/*solution for task 1*/
+select department_name as "department_name",
+case count(distinct emp.employee_id) when 0 then 'N/A' else to_char(count(distinct emp.employee_id)) end as emp_cnt,
+case count(distinct emp.job_id) when 0 then 'N/A' else to_char(count(distinct emp.job_id)) end as job_cnt,
+nvl(to_char(sum(emp.salary)), 'N/A') as sum_sal,
+nvl(to_char(min(emp.salary) + max(emp.salary)), 'N/A') as sum_min_max,
+listagg(phone_number, ', ') within group (order by phone_number) as phone_numbers
+from departments d
+left join employees emp on emp.department_id = d.department_id
+left join locations l on l.location_id = d.location_id
+left join countries c on c.country_id = l.country_id
+where instr(trim(both ' ' from d.department_name), ' ', 1) = 0 and lower(c.country_id) = lower(substr(c.country_name, 1, length(c.country_id)))
+group by d.department_name, c.country_id, c.country_name
+order by c.country_id, c.country_name desc;
+
+
+/*solution for task 2*/
+select j.job_id,
+job_title as "name",
+decode(to_char(count(distinct case mod(emp.employee_id, 2) when 1 then emp.employee_id else null end)), 
+'0', 'N/A', 
+to_char(count(distinct case mod(emp.employee_id, 2) when 1 then emp.employee_id else null end))) as emp_cnt,
+nvl(to_char(avg(case mod(emp.employee_id, 2) when 0 then emp.salary else null end)), 'N/A') as avg_sal,
+decode(count(distinct case (select max(e.salary) 
+                     from employees e 
+                     where e.job_id = j.job_id 
+                     group by e.job_id)
+when emp.salary then emp.employee_id
+else null end
+), 0, 'N/A', to_char(
+count(distinct case (select max(e.salary) 
+                     from employees e 
+                     where e.job_id = j.job_id 
+                     group by e.job_id)
+when emp.salary then emp.employee_id
+else null end
+)
+)) as mx_cnt
+from jobs j
+join employees emp on j.job_id = emp.job_id 
+where length(j.job_id) >= 4 and
+j.max_salary - j.min_salary <> (select max(jo.max_salary - jo.min_salary) from jobs jo)
+group by j.job_id, job_title
+order by case instr(j.job_id, 'IT') when 0 then 2 else 1 end, j.job_id;

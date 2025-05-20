@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module version="4">
+  <component name="AdditionalModuleElements">
+    <content url="file://$MODULE_DIR$/BasicStoreWebsite" dumb="true">
+      <sourceFolder url="file://$MODULE_DIR$/BasicStoreWebsite/src/main/java" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/BasicStoreWebsite/src/test" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/BasicStoreWebsite/src/test/java" isTestSource="true" />
+    </content>
+  </component>
+</module>

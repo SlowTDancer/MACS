@@ -1,0 +1,92 @@
+diff --git a/.vscode/settings.json b/.vscode/settings.json
+new file mode 100644
+index 0000000..1eaa062
+--- /dev/null
++++ b/.vscode/settings.json
+@@ -0,0 +1,3 @@
++{
++    "C_Cpp.errorSquiggles": "disabled"
++}
+\ No newline at end of file
+diff --git a/kernel/e1000.c b/kernel/e1000.c
+index 70a2adf..0e8553e 100644
+--- a/kernel/e1000.c
++++ b/kernel/e1000.c
+@@ -8,6 +8,8 @@
+ #include "e1000_dev.h"
+ #include "net.h"
+ 
++#define true 1
++
+ #define TX_RING_SIZE 16
+ static struct tx_desc tx_ring[TX_RING_SIZE] __attribute__((aligned(16)));
+ static struct mbuf *tx_mbufs[TX_RING_SIZE];
+@@ -102,19 +104,46 @@ e1000_transmit(struct mbuf *m)
+   // the TX descriptor ring so that the e1000 sends it. Stash
+   // a pointer so that it can be freed after sending.
+   //
++  acquire(&e1000_lock);
++  uint64 np = regs[E1000_TDT];
++  
++  if((tx_ring[np].status & E1000_TXD_STAT_DD) == 0) {
++    release(&e1000_lock);
++    return -1;
++  }
++
++  if(tx_mbufs[np] != 0) mbuffree(tx_mbufs[np]);
++
++  tx_ring[np].addr = (uint64) m->head;
++  tx_ring[np].length = (uint16) m->len;
++  tx_ring[np].cmd = E1000_TXD_CMD_EOP | E1000_TXD_CMD_RS; 
+   
++  tx_mbufs[np] = m;
++
++  regs[E1000_TDT]++;
++  regs[E1000_TDT] %= TX_RING_SIZE;
++
++  release(&e1000_lock);
+   return 0;
+ }
+ 
+ static void
+ e1000_recv(void)
+ {
+-  //
+-  // Your code here.
+-  //
+-  // Check for packets that have arrived from the e1000
+-  // Create and deliver an mbuf for each packet (using net_rx()).
+-  //
++  while(true){
++    uint64 np = (regs[E1000_RDT] + 1) % RX_RING_SIZE;
++
++    if((rx_ring[np].status & E1000_RXD_STAT_DD) == 0) return;
++
++    rx_mbufs[np]->len = rx_ring[np].length;
++    net_rx(rx_mbufs[np]);
++
++    rx_mbufs[np] = mbufalloc(0);
++    rx_ring[np].addr = (uint64) rx_mbufs[np]->head;
++    rx_ring[np].status = 0;
++
++    regs[E1000_RDT] = np;
++  }
+ }
+ 
+ void
+diff --git a/time.txt b/time.txt
+new file mode 100644
+index 0000000..d00491f
+--- /dev/null
++++ b/time.txt
+@@ -0,0 +1 @@
++1
+diff --git a/user/ln.c b/user/ln.c
+index 1894143..f8e2417 100644
+--- a/user/ln.c
++++ b/user/ln.c
+@@ -13,3 +13,4 @@ main(int argc, char *argv[])
+     fprintf(2, "link %s %s: failed\n", argv[1], argv[2]);
+   exit(0);
+ }
++

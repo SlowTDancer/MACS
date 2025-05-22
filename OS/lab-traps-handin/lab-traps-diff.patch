@@ -1,0 +1,302 @@
+diff --git a/.vscode/settings.json b/.vscode/settings.json
+new file mode 100644
+index 0000000..70e34ec
+--- /dev/null
++++ b/.vscode/settings.json
+@@ -0,0 +1,3 @@
++{
++    "C_Cpp.errorSquiggles": "disabled"
++}
+\ No newline at end of file
+diff --git a/Makefile b/Makefile
+index 212a89d..e5f8813 100644
+--- a/Makefile
++++ b/Makefile
+@@ -188,7 +188,7 @@ UPROGS=\
+ 	$U/_grind\
+ 	$U/_wc\
+ 	$U/_zombie\
+-
++	$U/_alarmtest\
+ 
+ 
+ 
+diff --git a/answers-traps.txt b/answers-traps.txt
+new file mode 100644
+index 0000000..aa1d090
+--- /dev/null
++++ b/answers-traps.txt
+@@ -0,0 +1,8 @@
++a0dan a5is chatvlit
++a2hi inakheba
++45b1, 250d
++64a
++2d2 <exit>
++"hello"s dabechdavs
++0x00646c72, 0x6c726c64
++mekhsierebashi magis adgilas rac ewereba magas dabechdavs.
+\ No newline at end of file
+diff --git a/kernel/defs.h b/kernel/defs.h
+index a3c962b..4b82fc2 100644
+--- a/kernel/defs.h
++++ b/kernel/defs.h
+@@ -80,6 +80,7 @@ int             pipewrite(struct pipe*, uint64, int);
+ void            printf(char*, ...);
+ void            panic(char*) __attribute__((noreturn));
+ void            printfinit(void);
++void            backtrace(void);
+ 
+ // proc.c
+ int             cpuid(void);
+diff --git a/kernel/printf.c b/kernel/printf.c
+index 1a50203..6211905 100644
+--- a/kernel/printf.c
++++ b/kernel/printf.c
+@@ -119,6 +119,7 @@ void
+ panic(char *s)
+ {
+   pr.locking = 0;
++  backtrace();
+   printf("panic: ");
+   printf(s);
+   printf("\n");
+@@ -133,3 +134,20 @@ printfinit(void)
+   initlock(&pr.lock, "pr");
+   pr.locking = 1;
+ }
++
++void
++backtrace(void){
++  uint64 fp = r_fp();
++  uint64 lsf = PGROUNDDOWN(fp);
++
++  printf("backtrace:\n");
++  
++  while (lsf <= fp && fp < lsf + PGSIZE){
++    uint64 ra = fp - 8, sfp = fp - 16;
++    
++    printf("%p\n", *(uint64 *)ra);
++
++    lsf = PGROUNDDOWN(fp);
++    fp = *(uint64 *)sfp;
++  }
++}
+\ No newline at end of file
+diff --git a/kernel/proc.c b/kernel/proc.c
+index 58a8a0b..5ef8d57 100644
+--- a/kernel/proc.c
++++ b/kernel/proc.c
+@@ -132,6 +132,12 @@ found:
+     return 0;
+   }
+ 
++  if((p->sd = (struct savedData*)kalloc()) == 0){
++    freeproc(p);
++    release(&p->lock);
++    return 0;
++  }
++
+   // An empty user page table.
+   p->pagetable = proc_pagetable(p);
+   if(p->pagetable == 0){
+@@ -140,6 +146,9 @@ found:
+     return 0;
+   }
+ 
++  p->ticks = 0;
++  p->alarmInterval = 0;
++
+   // Set up new context to start executing at forkret,
+   // which returns to user space.
+   memset(&p->context, 0, sizeof(p->context));
+@@ -157,6 +166,8 @@ freeproc(struct proc *p)
+ {
+   if(p->trapframe)
+     kfree((void*)p->trapframe);
++  if(p->sd)
++    kfree((void*)p->sd);
+   p->trapframe = 0;
+   if(p->pagetable)
+     proc_freepagetable(p->pagetable, p->sz);
+diff --git a/kernel/proc.h b/kernel/proc.h
+index d021857..0ced503 100644
+--- a/kernel/proc.h
++++ b/kernel/proc.h
+@@ -81,6 +81,10 @@ struct trapframe {
+ 
+ enum procstate { UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
+ 
++struct savedData{
++  struct trapframe trapframe;
++};
++
+ // Per-process state
+ struct proc {
+   struct spinlock lock;
+@@ -104,4 +108,8 @@ struct proc {
+   struct file *ofile[NOFILE];  // Open files
+   struct inode *cwd;           // Current directory
+   char name[16];               // Process name (debugging)
++  int alarmInterval;
++  void (*alarmHandler)();
++  struct savedData *sd;
++  int ticks;
+ };
+diff --git a/kernel/riscv.h b/kernel/riscv.h
+index 20a01db..0dd90c7 100644
+--- a/kernel/riscv.h
++++ b/kernel/riscv.h
+@@ -319,6 +319,14 @@ r_ra()
+   return x;
+ }
+ 
++static inline uint64
++r_fp()
++{
++  uint64 x;
++  asm volatile("mv %0, s0" : "=r" (x) );
++  return x;
++}
++
+ // flush the TLB.
+ static inline void
+ sfence_vma()
+@@ -360,4 +368,4 @@ typedef uint64 *pagetable_t; // 512 PTEs
+ // MAXVA is actually one bit less than the max allowed by
+ // Sv39, to avoid having to sign-extend virtual addresses
+ // that have the high bit set.
+-#define MAXVA (1L << (9 + 9 + 9 + 12 - 1))
++#define MAXVA (1L << (9 + 9 + 9 + 12 - 1))
+\ No newline at end of file
+diff --git a/kernel/syscall.c b/kernel/syscall.c
+index ed65409..72a7976 100644
+--- a/kernel/syscall.c
++++ b/kernel/syscall.c
+@@ -101,6 +101,8 @@ extern uint64 sys_unlink(void);
+ extern uint64 sys_link(void);
+ extern uint64 sys_mkdir(void);
+ extern uint64 sys_close(void);
++extern uint64 sys_sigalarm(void);
++extern uint64 sys_sigreturn(void);
+ 
+ // An array mapping syscall numbers from syscall.h
+ // to the function that handles the system call.
+@@ -126,6 +128,8 @@ static uint64 (*syscalls[])(void) = {
+ [SYS_link]    sys_link,
+ [SYS_mkdir]   sys_mkdir,
+ [SYS_close]   sys_close,
++[SYS_sigalarm]   sys_sigalarm,
++[SYS_sigreturn]   sys_sigreturn
+ };
+ 
+ void
+diff --git a/kernel/syscall.h b/kernel/syscall.h
+index bc5f356..c09f4bd 100644
+--- a/kernel/syscall.h
++++ b/kernel/syscall.h
+@@ -20,3 +20,5 @@
+ #define SYS_link   19
+ #define SYS_mkdir  20
+ #define SYS_close  21
++#define SYS_sigalarm 22
++#define SYS_sigreturn 23
+\ No newline at end of file
+diff --git a/kernel/sysproc.c b/kernel/sysproc.c
+index 3b4d5bd..4052048 100644
+--- a/kernel/sysproc.c
++++ b/kernel/sysproc.c
+@@ -57,6 +57,7 @@ sys_sleep(void)
+   argint(0, &n);
+   if(n < 0)
+     n = 0;
++  backtrace();
+   acquire(&tickslock);
+   ticks0 = ticks;
+   while(ticks - ticks0 < n){
+@@ -91,3 +92,23 @@ sys_uptime(void)
+   release(&tickslock);
+   return xticks;
+ }
++
++uint64
++sys_sigalarm(void)
++{
++  int ticks;
++  uint64 handler;
++  argint(0, &ticks);
++  argaddr(1, &handler);
++  myproc()->alarmInterval = ticks;
++  myproc()->alarmHandler = (void*) handler;
++  return 0;
++}
++
++uint64
++sys_sigreturn(void)
++{
++  *myproc()->trapframe = myproc()->sd->trapframe;
++  myproc()->ticks = 0;
++  return myproc()->trapframe->a0;
++}
+\ No newline at end of file
+diff --git a/kernel/trap.c b/kernel/trap.c
+index 512c850..be07d9c 100644
+--- a/kernel/trap.c
++++ b/kernel/trap.c
+@@ -46,7 +46,7 @@ usertrap(void)
+   w_stvec((uint64)kernelvec);
+ 
+   struct proc *p = myproc();
+-  
++
+   // save user program counter.
+   p->trapframe->epc = r_sepc();
+   
+@@ -77,8 +77,16 @@ usertrap(void)
+     exit(-1);
+ 
+   // give up the CPU if this is a timer interrupt.
+-  if(which_dev == 2)
++  if(which_dev == 2){
+     yield();
++    p->ticks++;
++    if(p->alarmInterval != 0){
++      if(p->ticks == p->alarmInterval){
++        p->sd->trapframe = *p->trapframe;
++        p->trapframe->epc = (uint64) p->alarmHandler;
++      }
++    }
++  }
+ 
+   usertrapret();
+ }
+diff --git a/time.txt b/time.txt
+new file mode 100644
+index 0000000..00750ed
+--- /dev/null
++++ b/time.txt
+@@ -0,0 +1 @@
++3
+diff --git a/user/user.h b/user/user.h
+index 4d398d5..9426153 100644
+--- a/user/user.h
++++ b/user/user.h
+@@ -22,6 +22,8 @@ int getpid(void);
+ char* sbrk(int);
+ int sleep(int);
+ int uptime(void);
++int sigalarm(int ticks, void (*handler)());
++int sigreturn(void);
+ 
+ // ulib.c
+ int stat(const char*, struct stat*);
+diff --git a/user/usys.pl b/user/usys.pl
+index 01e426e..3c258dc 100755
+--- a/user/usys.pl
++++ b/user/usys.pl
+@@ -36,3 +36,5 @@ entry("getpid");
+ entry("sbrk");
+ entry("sleep");
+ entry("uptime");
++entry("sigalarm");
++entry("sigreturn");
+\ No newline at end of file

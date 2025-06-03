@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mainLayout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/edit_text_background"
+    android:clickable="true"
+    android:clipChildren="false"
+    android:focusable="true"
+    android:orientation="vertical"
+    android:padding="@dimen/inner_spacing">
+
+    <TextView
+        android:id="@+id/toDoTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textColor="@android:color/black"
+        tools:text="Title" />
+
+    <CheckBox
+        android:id="@+id/toDoCheckbox1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/checkbox_margin"
+        android:buttonTint="@android:color/black"
+        android:clickable="false"
+        android:ellipsize="end"
+        android:enabled="false"
+        android:focusable="false"
+        android:maxLines="1"
+        android:textColor="@android:color/black"
+        android:visibility="gone"
+        tools:text="Item1" />
+
+    <CheckBox
+        android:id="@+id/toDoCheckbox2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/checkbox_margin"
+        android:buttonTint="@android:color/black"
+        android:clickable="false"
+        android:ellipsize="end"
+        android:enabled="false"
+        android:focusable="false"
+        android:maxLines="1"
+        android:textColor="@android:color/black"
+        android:visibility="gone"
+        tools:text="Item2" />
+
+    <CheckBox
+        android:id="@+id/toDoCheckbox3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/checkbox_margin"
+        android:buttonTint="@android:color/black"
+        android:clickable="false"
+        android:ellipsize="end"
+        android:enabled="false"
+        android:focusable="false"
+        android:maxLines="1"
+        android:textColor="@android:color/black"
+        android:visibility="gone"
+        tools:text="Item3" />
+
+    <TextView
+        android:id="@+id/etc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="@string/etc"
+        android:textSize="@dimen/text_size"
+        android:visibility="gone"
+        tools:text="..." />
+
+    <TextView
+        android:id="@+id/itemsInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/grey"
+        android:textSize="@dimen/text_size"
+        android:visibility="gone"
+        tools:text="5 more items" />
+</LinearLayout>

@@ -1,0 +1,12 @@
+<resources>
+    <!-- Base application theme. -->
+    <style name="Base.Theme.Alarm" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:background">@color/light_background_color</item>
+        <item name="android:textColorPrimary">@color/light_text_color</item>
+        <item name="colorPrimaryContainer">@color/light_item_color</item>
+        <item name="colorOnSurface">@color/light_item_color</item>
+        <item name="iconColor">@color/light_icon_color</item>
+    </style>
+
+    <style name="Theme.Alarm" parent="Base.Theme.Alarm" />
+</resources>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="light_text_color">#696969</color>
+    <color name="light_icon_color">#696969</color>
+    <color name="light_background_color">#FBF5F5</color>
+    <color name="light_item_color">#FFFFFF</color>
+    <color name="dark_text_color">#FFFFFF</color>
+    <color name="dark_icon_color">#FFFFFF</color>
+    <color name="dark_item_color">#383636</color>
+    <color name="dark_background_color">#000000</color>
+    <color name="switch_light_green">#bef4ed</color>
+    <color name="switch_dark_green">#56d5c0</color>
+    <color name="switch_light_gray">#656565</color>
+    <color name="switch_dark_gray">#b9b9b9</color>
+</resources>
